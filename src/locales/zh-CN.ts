@@ -111,7 +111,7 @@ export default {
         compressionSmallDesc: '适合快速加载',
         maxSize: '最大',
         dropzone: '点击或拖拽图片到这里',
-        dropzoneHint: '支持单张或多张图片上传，最大支持 20MB，支持 JPG, PNG, GIF, WEBP, SVG 等格式',
+        dropzoneHint: '支持单张或多张图片上传，最大支持 20MB，支持 JPG, PNG, GIF, WEBP, ICO 等格式',
         pendingInfo: '待上传信息',
         count: '{count} 张',
         originalSize: '原始大小',
