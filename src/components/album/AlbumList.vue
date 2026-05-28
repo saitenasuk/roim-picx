@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
     ElInput, ElButton, ElDialog, ElCard, ElEmpty, ElDropdown, ElDropdownMenu, ElDropdownItem,
-    ElMessageBox, ElMessage
+    ElMessageBox, ElMessage, ElSwitch
 } from 'element-plus'
 import {
     faPlus, faSearch, faFolder, faEllipsisVertical, faPen, faTrash, faTimes, faShareNodes, faRedo
@@ -16,6 +16,7 @@ import BaseInput from '../common/BaseInput.vue'
 import ShareDialog from '../ShareDialog.vue'
 import AlbumCard from './AlbumCard.vue'
 import LoadingOverlay from '../LoadingOverlay.vue'
+import copy from 'copy-to-clipboard'
 import { requestListAlbums, requestCreateAlbum, requestDeleteAlbum, requestUpdateAlbum } from '../../utils/request'
 import type { Album } from '../../utils/types'
 
@@ -64,7 +65,7 @@ watch(searchQuery, () => {
 
 const handleCreate = () => {
     dialogMode.value = 'create'
-    currentAlbum.value = { name: '', description: '' }
+    currentAlbum.value = { name: '', description: '', enableRandomImage: false }
     dialogVisible.value = true
 }
 
@@ -85,14 +86,16 @@ const handleSubmit = async () => {
         if (dialogMode.value === 'create') {
             await requestCreateAlbum({
                 name: currentAlbum.value.name,
-                description: currentAlbum.value.description || undefined
+                description: currentAlbum.value.description || undefined,
+                enableRandomImage: currentAlbum.value.enableRandomImage || false
             })
             ElMessage.success(t('album.createSuccess'))
         } else {
             await requestUpdateAlbum(currentAlbum.value.id!, {
                 name: currentAlbum.value.name!,
                 description: currentAlbum.value.description || undefined,
-                coverImage: currentAlbum.value.cover_image || undefined
+                coverImage: currentAlbum.value.cover_image || undefined,
+                enableRandomImage: currentAlbum.value.enableRandomImage || false
             })
             ElMessage.success(t('album.updateSuccess'))
         }
@@ -127,6 +130,20 @@ const handleShare = (album: Album) => {
 
 const goToAlbum = (id: number) => {
     router.push(`/albums/${id}`)
+}
+
+const getRandomImageUrl = (id?: number) => {
+    if (!id) return ''
+    const baseUrl = import.meta.env.VITE_APP_API_URL || window.location.origin
+    return `${baseUrl}/rest/albums/${id}/random`
+}
+
+const copyRandomUrl = (id?: number) => {
+    const url = getRandomImageUrl(id)
+    if (url) {
+        copy(url)
+        ElMessage.success(t('common.copied'))
+    }
 }
 
 onMounted(() => {
@@ -172,6 +189,22 @@ onMounted(() => {
                 :placeholder="$t('album.namePlaceholder')" />
             <BaseInput v-model="currentAlbum.description" type="textarea" :label="$t('album.description')"
                 :placeholder="$t('album.descPlaceholder')" />
+
+            <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('album.enableRandomImage')
+                }}</span>
+                <el-switch v-model="currentAlbum.enableRandomImage" />
+            </div>
+
+            <div v-if="currentAlbum.id && currentAlbum.enableRandomImage" class="flex flex-col space-y-2 mt-2">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('album.randomImageUrl')
+                }}</span>
+                <div class="flex items-center gap-2">
+                    <BaseInput readonly :model-value="getRandomImageUrl(currentAlbum.id)" class="flex-1 w-full" />
+                    <BaseButton type="indigo" @click="copyRandomUrl(currentAlbum.id)" class="flex-shrink-0 !py-2 !px-4">
+                        {{ $t('common.copy') }}</BaseButton>
+                </div>
+            </div>
         </div>
     </BaseDialog>
 

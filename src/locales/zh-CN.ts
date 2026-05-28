@@ -400,6 +400,8 @@ export default {
         view: '查看相册',
         uploadTo: '上传到相册',
         shared: '已分享',
+        enableRandomImage: '允许获取随机图片',
+        randomImageUrl: '随机图片链接',
     },
     delete: {
         title: '删除图片',

@@ -18,16 +18,18 @@
         </div>
 
         <!-- Path and Options -->
-        <transition name="el-zoom-in-top">
-            <UploadConfig v-if="!isConfigCollapsed" v-model:customPath="customPath" v-model:keepName="keepName"
-                v-model:enableExpiry="enableExpiry" v-model:expireTime="expireTime"
-                v-model:compressionLevel="compressionLevel" v-model:currentAlbumId="currentAlbumId"
-                v-model:uploadTags="uploadTags" v-model:selectedStorageType="selectedStorageType"
-                :directory-suggestions="directorySuggestions" :disabled-date="disabledDate"
-                :compression-options="compressionOptions" :album-options="albumOptions"
-                :storage-providers="storageProviders" :storage-provider-options="storageProviderOptions"
-                :watermark-config="watermarkConfig" :watermark-positions="watermarkPositions" />
-        </transition>
+        <div class="config-collapse-wrapper" :class="{ 'is-collapsed': isConfigCollapsed }">
+            <div class="config-collapse-inner">
+                <UploadConfig v-model:customPath="customPath" v-model:keepName="keepName"
+                    v-model:enableExpiry="enableExpiry" v-model:expireTime="expireTime"
+                    v-model:compressionLevel="compressionLevel" v-model:currentAlbumId="currentAlbumId"
+                    v-model:uploadTags="uploadTags" v-model:selectedStorageType="selectedStorageType"
+                    :directory-suggestions="directorySuggestions" :disabled-date="disabledDate"
+                    :compression-options="compressionOptions" :album-options="albumOptions"
+                    :storage-providers="storageProviders" :storage-provider-options="storageProviderOptions"
+                    :watermark-config="watermarkConfig" :watermark-positions="watermarkPositions" />
+            </div>
+        </div>
 
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -281,7 +283,7 @@ onMounted(async () => {
         // Try setting WebGL backend, fallback to CPU handled by TFJS
         await tf.setBackend('webgl').catch(() => tf.setBackend('cpu'))
         console.log('Current TF Backend:', tf.getBackend())
-        
+
         const model = await nsfwjs.load()
         nsfwModel.value = markRaw(model)
         console.log('NSFW Model loaded')
@@ -352,7 +354,7 @@ const appendConvertedImages = async (files: FileList | null | undefined) => {
                 await new Promise((resolve) => { img.onload = resolve })
                 const predictions = await nsfwModel.value.classify(img)
                 URL.revokeObjectURL(img.src)
-                
+
                 // Check if Porn or Hentai probability is high
                 const highestProb = Math.max(...predictions.filter(p => p.className === 'Porn' || p.className === 'Hentai').map(p => p.probability))
                 // console.log('NSFW Prediction:', predictions)
@@ -455,3 +457,25 @@ const uploadImages = () => {
         })
 }
 </script>
+
+<style scoped>
+.config-collapse-wrapper {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), margin-bottom 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
+    opacity: 1;
+    margin-bottom: 2rem;
+    visibility: visible;
+}
+
+.config-collapse-wrapper.is-collapsed {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    margin-bottom: 0;
+    visibility: hidden;
+}
+
+.config-collapse-inner {
+    overflow: hidden;
+}
+</style>

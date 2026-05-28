@@ -11,6 +11,7 @@ interface DbAlbum {
     name: string
     description: string | null
     cover_image: string | null
+    enable_random_image: number
     created_at: number
     updated_at: number
 }
@@ -63,6 +64,7 @@ albumRoutes.get('/albums', auth, async (c) => {
 
             return {
                 ...album,
+                enableRandomImage: !!album.enable_random_image,
                 imageCount: countRes?.count || 0,
                 shareInfo: { ...share }
             }
@@ -80,8 +82,8 @@ albumRoutes.post('/albums', auth, async (c) => {
     const user = c.get('user')
     if (!user) return c.json(Fail('未登录'), 401)
 
-    const { name, description, coverImage } = await c.req.json<{
-        name: string, description?: string, coverImage?: string
+    const { name, description, coverImage, enableRandomImage } = await c.req.json<{
+        name: string, description?: string, coverImage?: string, enableRandomImage?: boolean
     }>()
 
     if (!name) return c.json(Fail('相册名称不能为空'))
@@ -89,15 +91,16 @@ albumRoutes.post('/albums', auth, async (c) => {
     const now = Date.now()
     try {
         const result = await c.env.DB.prepare(
-            `INSERT INTO albums (user_id, name, description, cover_image, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?)`
-        ).bind(user.id, name, description || null, coverImage || null, now, now).run()
+            `INSERT INTO albums (user_id, name, description, cover_image, enable_random_image, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`
+        ).bind(user.id, name, description || null, coverImage || null, enableRandomImage ? 1 : 0, now, now).run()
 
         return c.json(Ok({
             id: result.meta.last_row_id,
             name,
             description,
             coverImage,
+            enableRandomImage: !!enableRandomImage,
             createdAt: now,
             updatedAt: now,
             imageCount: 0
@@ -112,7 +115,9 @@ albumRoutes.post('/albums', auth, async (c) => {
 albumRoutes.put('/albums/:id', auth, async (c) => {
     const user = c.get('user')
     const id = c.req.param('id')
-    const { name, description, coverImage } = await c.req.json()
+    const { name, description, coverImage, enableRandomImage } = await c.req.json<{
+        name: string, description?: string, coverImage?: string, enableRandomImage?: boolean
+    }>()
 
     try {
         // Check ownership
@@ -122,10 +127,10 @@ albumRoutes.put('/albums/:id', auth, async (c) => {
 
         const now = Date.now()
         await c.env.DB.prepare(
-            `UPDATE albums SET name = ?, description = ?, cover_image = ?, updated_at = ? WHERE id = ?`
-        ).bind(name, description || null, coverImage || null, now, id).run()
+            `UPDATE albums SET name = ?, description = ?, cover_image = ?, enable_random_image = ?, updated_at = ? WHERE id = ?`
+        ).bind(name, description || null, coverImage || null, enableRandomImage ? 1 : 0, now, id).run()
 
-        return c.json(Ok({ id, name, description, coverImage, updatedAt: now }))
+        return c.json(Ok({ id, name, description, coverImage, enableRandomImage: !!enableRandomImage, updatedAt: now }))
     } catch (e) {
         return c.json(Fail('更新相册失败'))
     }
@@ -173,13 +178,42 @@ albumRoutes.get('/albums/:id', auth, async (c) => {
         ])
 
         return c.json(Ok({
-            album,
+            album: {
+                ...album,
+                enableRandomImage: !!album.enable_random_image
+            },
             images: images.results || [],
             total: countResult?.count || 0
         }))
     } catch (e) {
         console.error('Get album detail error:', e)
         return c.json(Fail('获取相册详情失败'))
+    }
+})
+
+// Get random image from album
+albumRoutes.get('/albums/:id/random', async (c) => {
+    const id = c.req.param('id')
+
+    try {
+        const album = await c.env.DB.prepare('SELECT enable_random_image FROM albums WHERE id = ?')
+            .bind(id).first<DbAlbum>()
+
+        if (!album) return c.json(Fail('相册不存在'), 404)
+        if (!album.enable_random_image) return c.json(Fail('该相册未开启随机图片功能'), 403)
+
+        const randomImage = await c.env.DB.prepare(
+            'SELECT image_url FROM album_images WHERE album_id = ? ORDER BY RANDOM() LIMIT 1'
+        ).bind(id).first<{ image_url: string }>()
+
+        if (!randomImage || !randomImage.image_url) {
+            return c.json(Fail('相册中没有图片'), 404)
+        }
+
+        return c.json(Ok(randomImage.image_url))
+    } catch (e) {
+        console.error('Get random album image error:', e)
+        return c.json(Fail('获取随机图片失败'))
     }
 })
 

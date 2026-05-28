@@ -1,5 +1,5 @@
 <template>
-    <div class="mb-8 p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+    <div class="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Path Selection -->
             <div>
@@ -39,8 +39,9 @@
                 </p>
                 <transition name="el-fade-in">
                     <div v-if="enableExpiry" class="relative group mt-2">
-                        <BaseDatePicker :model-value="expireTime" @update:model-value="$emit('update:expireTime', $event)"
-                            type="datetime" :placeholder="$t('upload.selectExpireTime')" format="YYYY-MM-DD HH:mm:ss"
+                        <BaseDatePicker :model-value="expireTime"
+                            @update:model-value="$emit('update:expireTime', $event)" type="datetime"
+                            :placeholder="$t('upload.selectExpireTime')" format="YYYY-MM-DD HH:mm:ss"
                             :disabled-date="disabledDate" class="!w-full custom-date-picker" />
                     </div>
                 </transition>
@@ -50,7 +51,7 @@
             <div>
                 <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{{
                     $t('upload.compression')
-                    }}</label>
+                }}</label>
                 <CustomSelect :model-value="compressionLevel"
                     @update:model-value="$emit('update:compressionLevel', $event)" :options="compressionOptions">
                     <template #trigger="{ option }">
@@ -102,7 +103,8 @@
                         <div class="flex items-center gap-3 w-full">
                             <div
                                 class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 flex-shrink-0 overflow-hidden">
-                                <img v-if="option.cover_image" :src="option.cover_image" class="w-full h-full object-cover" />
+                                <img v-if="option.cover_image" :src="option.cover_image"
+                                    class="w-full h-full object-cover" />
                                 <font-awesome-icon v-else :icon="option.icon || faImages"
                                     :class="{ 'text-gray-400': !option.icon }" />
                             </div>
@@ -120,7 +122,7 @@
             <!-- Tags Input -->
             <div>
                 <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{{ $t('tags.title')
-                    }}</label>
+                }}</label>
                 <TagsInput :model-value="uploadTags" @update:model-value="$emit('update:uploadTags', $event)"
                     :placeholder="$t('tags.inputPlaceholder')" :hint="$t('tags.inputHint')" />
             </div>
@@ -180,7 +182,8 @@
                                                     class="w-5 h-5 bg-indigo-100 dark:bg-indigo-900/30 rounded text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-[10px]">
                                                     {{ option?.icon || '↘' }}
                                                 </span>
-                                                <span>{{ $t(`upload.position${option?.label || 'BottomRight'}`) }}</span>
+                                                <span>{{ $t(`upload.position${option?.label || 'BottomRight'}`)
+                                                    }}</span>
                                             </span>
                                         </template>
                                         <template #option="{ option, selected }">
@@ -210,7 +213,7 @@
                             <div>
                                 <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">{{
                                     $t('upload.watermarkSize')
-                                    }} ({{ watermarkConfig.fontSize }}%)</label>
+                                }} ({{ watermarkConfig.fontSize }}%)</label>
                                 <input type="range" v-model.number="watermarkConfig.fontSize" min="1" max="10" step="1"
                                     class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-indigo-600" />
                             </div>

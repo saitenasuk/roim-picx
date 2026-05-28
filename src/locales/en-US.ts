@@ -399,6 +399,8 @@ export default {
         view: 'View Album',
         uploadTo: 'Upload to Album',
         shared: 'Shared',
+        enableRandomImage: 'Enable Random Image',
+        randomImageUrl: 'Random Image URL',
     },
     delete: {
         title: 'Delete Image',

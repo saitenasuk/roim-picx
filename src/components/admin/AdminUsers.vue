@@ -51,6 +51,12 @@ const handlePageChange = (page: number) => {
     loadUsers()
 }
 
+const handleSizeChange = (size: number) => {
+    pageSize.value = size
+    currentPage.value = 1
+    loadUsers()
+}
+
 const handleSearch = () => {
     currentPage.value = 1
     loadUsers()
@@ -222,6 +228,12 @@ defineExpose({
             </el-table>
         </div>
 
+        <div class="mt-4 flex justify-end">
+            <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize"
+                :page-sizes="[10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" :total="total"
+                @size-change="handleSizeChange" @current-change="handlePageChange" />
+        </div>
+
         <!-- 配额设置对话框 -->
         <BaseDialog v-model="quotaDialogVisible" :title="$t('admin.setQuota')" @confirm="saveQuota">
             <div v-if="quotaEditUser" class="space-y-4">
@@ -232,7 +244,7 @@ defineExpose({
                     <div>
                         <div class="font-medium text-gray-900 dark:text-gray-100">{{ quotaEditUser.name ||
                             quotaEditUser.login
-                            }}</div>
+                        }}</div>
                         <div class="text-sm text-gray-400">@{{ quotaEditUser.login }}</div>
                     </div>
                 </div>
